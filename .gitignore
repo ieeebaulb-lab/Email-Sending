@@ -1,7 +1,5 @@
 # Google API Credentials and Tokens
 # IMPORTANT: These files should exist on your local machine but NOT be committed to git
-credentials.json
-token.json
 
 # Logs
 send_log.csv
