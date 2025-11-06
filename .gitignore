@@ -1,9 +1,26 @@
-# Virtual Environment
+# ===== SENSITIVE FILES - NEVER UPLOAD =====
+# OAuth credentials and tokens
+credentials.json
+token.json
+token.pickle
+
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+config.json
+secrets.json
+
+# ===== VIRTUAL ENVIRONMENTS =====
 venv/
 env/
 ENV/
+.venv/
+venv.bak/
 
-# Python
+# ===== PYTHON =====
 __pycache__/
 *.py[cod]
 *$py.class
@@ -12,22 +29,97 @@ __pycache__/
 build/
 dist/
 *.egg-info/
+.eggs/
+*.egg
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.hypothesis/
+*.mo
+*.pot
 
-# Logs
-send_log.csv
+# ===== LOGS & DATA FILES =====
+# Log files
 *.log
+*.log.*
+send_log.csv
+email_log.csv
 
-# IDE
+# CSV files (email data - keep templates but ignore data)
+# Uncomment the line below if you want to ignore ALL CSV files:
+# *.csv
+
+# Test data
+test_*.csv
+*_test.csv
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# ===== IDE & EDITORS =====
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+*.code-workspace
 
-# OS
+# ===== OPERATING SYSTEM =====
+# macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
 Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+desktop.ini
+$RECYCLE.BIN/
 
-# Test data
-test_*.csv
+# Linux
+*~
+.directory
+.Trash-*
 
+# ===== TEMPORARY FILES =====
+*.tmp
+*.temp
+*.cache
+tmp/
+temp/
+
+# ===== JUPYTER NOTEBOOKS =====
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# ===== MISCELLANEOUS =====
+# Compiled files
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.pyc
+
+# Package files
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip

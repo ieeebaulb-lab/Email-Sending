@@ -12,20 +12,34 @@ echo "  Formal Email Mailer - Startup Script"
 echo "======================================================================"
 echo ""
 
+# Detect OS
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" || "$OSTYPE" == "cygwin" ]]; then
+    OS_TYPE="windows"
+    PYTHON_CMD="python"
+    VENV_ACTIVATE="venv/Scripts/activate"
+    echo "Detected OS: Windows (Git Bash/MSYS)"
+else
+    OS_TYPE="linux"
+    PYTHON_CMD="python3"
+    VENV_ACTIVATE="venv/bin/activate"
+    echo "Detected OS: Linux/Unix"
+fi
+echo ""
+
 # Check if venv exists
 if [ ! -d "venv" ]; then
     echo -e "${YELLOW}⚠ Virtual environment not found. Creating one...${NC}"
-    python3 -m venv venv
+    $PYTHON_CMD -m venv venv
     echo -e "${GREEN}✓ Virtual environment created${NC}"
     echo ""
 fi
 
 # Activate virtual environment
 echo "Activating virtual environment..."
-source venv/bin/activate
+source $VENV_ACTIVATE
 
 # Check if dependencies are installed
-if ! python3 -c "import googleapiclient" 2>/dev/null; then
+if ! $PYTHON_CMD -c "import googleapiclient" 2>/dev/null; then
     echo -e "${YELLOW}⚠ Dependencies not installed. Installing...${NC}"
     pip install -q -r requirements.txt
     echo -e "${GREEN}✓ Dependencies installed${NC}"
@@ -59,7 +73,7 @@ echo "======================================================================"
 echo ""
 
 # Run the script
-python3 mailer_dual_template.py
+$PYTHON_CMD mailer_dual_template.py
 
 # Capture exit code
 EXIT_CODE=$?

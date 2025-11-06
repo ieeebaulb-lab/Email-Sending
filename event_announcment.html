@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Invitation</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: Arial, Helvetica, sans-serif;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f5;">
+        <tr>
+            <td style="padding: 40px 20px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="640" style="margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <!-- Hero Image (Optional) -->
+                    {HeroImageSection}
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style="padding: 40px 40px 30px; text-align: center; border-bottom: 3px solid #2c5282;">
+                            <h1 style="margin: 0; font-size: 26px; color: #1a202c; font-weight: bold;">{OrgName}</h1>
+                            <p style="margin: 8px 0 0; font-size: 14px; color: #718096;">cordially invites you</p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding: 40px;">
+                            <p style="margin: 0 0 20px; font-size: 16px; color: #2d3748; line-height: 1.6;">Dear {Name},</p>
+                            
+                            <p style="margin: 0 0 30px; font-size: 16px; color: #2d3748; line-height: 1.6;">
+                                We are pleased to invite you to attend <strong>{EventTitle}</strong>, hosted by <strong>{OrgName}</strong>.
+                            </p>
+                            
+                            <!-- Event Details Box -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f7fafc; border-left: 4px solid #2c5282; border-radius: 6px; margin-bottom: 30px;">
+                                <tr>
+                                    <td style="padding: 24px;">
+                                        <h2 style="margin: 0 0 20px; font-size: 22px; color: #1a202c;">{EventTitle}</h2>
+                                        
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr>
+                                                <td style="padding: 8px 0;">
+                                                    <p style="margin: 0; font-size: 15px; color: #2d3748; line-height: 1.6;">
+                                                        <strong>Date:</strong> {EventDate}
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0;">
+                                                    <p style="margin: 0; font-size: 15px; color: #2d3748; line-height: 1.6;">
+                                                        <strong>Time:</strong> {EventTime} {EventTimezone}
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0;">
+                                                    <p style="margin: 0; font-size: 15px; color: #2d3748; line-height: 1.6;">
+                                                        <strong>Location:</strong> {EventLocation}
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Event Description -->
+                            <p style="margin: 0 0 20px; font-size: 16px; color: #2d3748; line-height: 1.6;">
+                                {EventDescription}
+                            </p>
+                            
+                            {OutcomesSection}
+                            
+                            {SpeakersSection}
+                            
+                            <!-- Action Buttons -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top: 30px;">
+                                <tr>
+                                    <td align="center" style="padding: 0 0 20px;">
+                                        <a href="{RSVP_URL}" 
+                                           style="display: inline-block; padding: 16px 48px; background-color: #2c5282; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: bold; border-radius: 6px; margin: 0 8px;">
+                                            RSVP Now
+                                        </a>
+                                        <a href="{CalendarICSURL}" 
+                                           style="display: inline-block; padding: 16px 32px; background-color: #ffffff; color: #2c5282; text-decoration: none; font-size: 16px; font-weight: bold; border-radius: 6px; border: 2px solid #2c5282; margin: 0 8px;">
+                                            Add to Calendar
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center" style="padding: 0 0 30px;">
+                                        <p style="margin: 0; font-size: 13px; color: #718096; line-height: 1.6;">
+                                            RSVP: <a href="{RSVP_URL}" style="color: #2c5282; word-break: break-all;">{RSVP_URL}</a><br>
+                                            Calendar: <a href="{CalendarICSURL}" style="color: #2c5282; word-break: break-all;">{CalendarICSURL}</a>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <p style="margin: 0 0 8px; font-size: 16px; color: #2d3748; line-height: 1.6;">
+                                We look forward to your participation. Should you have any questions, please contact us at 
+                                <a href="mailto:{SupportEmail}" style="color: #2c5282; text-decoration: none;">{SupportEmail}</a>.
+                            </p>
+                            
+                            <p style="margin: 30px 0 8px; font-size: 16px; color: #2d3748; line-height: 1.6;">Kind regards,</p>
+                            <p style="margin: 0; font-size: 16px; color: #2d3748; line-height: 1.6;">
+                                <strong>{OrgName} Team</strong>
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 30px 40px; background-color: #f7fafc; border-top: 1px solid #e2e8f0; border-radius: 0 0 8px 8px;">
+                            <p style="margin: 0 0 12px; font-size: 13px; color: #718096; line-height: 1.6; text-align: center;">
+                                {FooterContact}
+                            </p>
+                            {UnsubscribeSection}
+                            <p style="margin: 0; font-size: 12px; color: #a0aec0; text-align: center;">
+                                &copy; {Year} {OrgName}. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
