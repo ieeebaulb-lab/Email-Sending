@@ -14,13 +14,22 @@ import re
 from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
 from typing import Dict, List, Optional, Tuple
+from io import BytesIO
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+
+try:
+    from PIL import Image, ImageDraw, ImageFont
+    PIL_AVAILABLE = True
+except ImportError:
+    PIL_AVAILABLE = False
+    print("⚠ Warning: Pillow not installed. Certificate generation disabled.")
 
 # OAuth Scopes
 SCOPES = [
@@ -59,29 +68,23 @@ CERTIFICATE_HTML_TEMPLATE = """
                             <p style="margin: 0 0 20px; font-size: 16px; color: #2d3748; line-height: 1.6;">Dear {Name},</p>
                             
                             <p style="margin: 0 0 20px; font-size: 16px; color: #2d3748; line-height: 1.6;">
-                                Congratulations on successfully completing <strong>{CourseTitle}</strong> on <strong>{CompletionDate}</strong>. 
-                                We are pleased to confirm your achievement and provide your official certificate of completion.
+                                {CertificateIntroText}
                             </p>
                             
                             <p style="margin: 0 0 30px; font-size: 16px; color: #2d3748; line-height: 1.6;">
-                                Your certificate is securely hosted and accessible via the link below:
+                                Your personalized certificate is attached to this email as a PNG image. 
+                                You can download, print, or share it as needed.
                             </p>
                             
-                            <!-- Certificate Button -->
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                            <!-- Certificate Attachment Notice -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f7fafc; border-radius: 6px; margin-bottom: 30px;">
                                 <tr>
-                                    <td align="center" style="padding: 0 0 30px;">
-                                        <a href="{CertificateDriveLink}" 
-                                           style="display: inline-block; padding: 16px 48px; background-color: #2c5282; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: bold; border-radius: 6px; border: none;">
-                                            View Certificate
-                                        </a>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td align="center" style="padding: 0 0 30px;">
-                                        <p style="margin: 0; font-size: 14px; color: #718096;">
-                                            If the button does not work, copy this link:<br>
-                                            <a href="{CertificateDriveLink}" style="color: #2c5282; word-break: break-all;">{CertificateDriveLink}</a>
+                                    <td style="padding: 24px; text-align: center;">
+                                        <p style="margin: 0; font-size: 16px; color: #2d3748;">
+                                            📎 <strong>Certificate attached</strong> to this email
+                                        </p>
+                                        <p style="margin: 8px 0 0; font-size: 14px; color: #718096;">
+                                            Look for the attachment at the bottom of this email
                                         </p>
                                     </td>
                                 </tr>
@@ -92,9 +95,6 @@ CERTIFICATE_HTML_TEMPLATE = """
                                 <tr>
                                     <td style="padding: 24px;">
                                         <p style="margin: 0 0 12px; font-size: 14px; color: #2d3748; font-weight: bold;">Certificate Details</p>
-                                        <p style="margin: 0 0 8px; font-size: 14px; color: #4a5568; line-height: 1.6;">
-                                            <strong>Certificate ID:</strong> {CertificateID}
-                                        </p>
                                         <p style="margin: 0 0 8px; font-size: 14px; color: #4a5568; line-height: 1.6;">
                                             <strong>Issued by:</strong> {OrgName}
                                         </p>
@@ -292,13 +292,14 @@ Certificate Delivery
 
 Dear {Name},
 
-Congratulations on successfully completing {CourseTitle} on {CompletionDate}. We are pleased to confirm your achievement and provide your official certificate of completion.
+{CertificateIntroTextPlain}
 
-Your certificate is securely hosted and accessible via the following link:
-{CertificateDriveLink}
+Your personalized certificate is attached to this email as a PNG image.
+You can download, print, or share it as needed.
+
+📎 CERTIFICATE ATTACHED - Check the attachment at the bottom of this email
 
 CERTIFICATE DETAILS
-Certificate ID: {CertificateID}
 Issued by: {OrgName}
 Completion Date: {CompletionDate}
 {VerificationText}
@@ -370,11 +371,11 @@ TEMPLATE_CONFIGS = {
         'name': 'Certificate Delivery',
         'html_template': CERTIFICATE_HTML_TEMPLATE,
         'text_template': CERTIFICATE_TEXT_TEMPLATE,
-        'subject_default': 'Certificate of Completion — {CourseTitle}',
-        'required_fields': ['Name', 'Email', 'CourseTitle', 'CompletionDate', 
-                           'CertificateDriveLink', 'CertificateID', 'OrgName', 
-                           'SupportEmail', 'Year'],
-        'optional_fields': ['VerificationURL', 'OrgAddress', 'OrgPhone', 
+        'subject_default': 'Certificate of Completion',
+        'required_fields': ['Name', 'Email'],
+        'optional_fields': ['CourseTitle', 'CompletionDate', 
+                           'OrgName', 'SupportEmail', 'Year',
+                           'VerificationURL', 'OrgAddress', 'OrgPhone', 
                            'TeamOrSignerName', 'Title']
     },
     'event': {
@@ -473,12 +474,59 @@ def authorize() -> Tuple[any, any]:
 # GOOGLE SHEETS
 # ============================================================================
 
-def fetch_rows(sheets_service, sheet_id: str, range_name: str) -> Tuple[List[str], List[List[str]]]:
+def extract_sheet_id(input_string: str) -> str:
+    """
+    Extract Sheet ID from a URL or return the ID if already provided.
+    Handles various Google Sheets URL formats.
+    """
+    input_string = input_string.strip()
+    
+    # If it's already just an ID (no slashes), return it
+    if '/' not in input_string and 'http' not in input_string:
+        return input_string
+    
+    # Try to extract from URL patterns
+    # Pattern 1: /d/SHEET_ID/
+    match = re.search(r'/d/([a-zA-Z0-9-_]+)', input_string)
+    if match:
+        return match.group(1)
+    
+    # Pattern 2: spreadsheets/d/SHEET_ID
+    match = re.search(r'spreadsheets/d/([a-zA-Z0-9-_]+)', input_string)
+    if match:
+        return match.group(1)
+    
+    # Pattern 3: key=SHEET_ID
+    match = re.search(r'key=([a-zA-Z0-9-_]+)', input_string)
+    if match:
+        return match.group(1)
+    
+    # If no pattern matched, return as-is and let it fail with better error
+    return input_string
+
+def fetch_rows(sheets_service, sheet_id: str, range_name: str = None) -> Tuple[List[str], List[List[str]]]:
     """
     Fetch rows from Google Sheet.
+    If range_name is None, fetches all data automatically.
     Returns (headers, data_rows).
     """
     try:
+        if range_name is None:
+            # Get sheet metadata to find the first sheet name
+            sheet_metadata = sheets_service.spreadsheets().get(spreadsheetId=sheet_id).execute()
+            sheets = sheet_metadata.get('sheets', [])
+            
+            if not sheets:
+                print("ERROR: No sheets found in the spreadsheet.")
+                sys.exit(1)
+            
+            # Get the first sheet's title
+            first_sheet_name = sheets[0]['properties']['title']
+            print(f"📋 Using sheet: '{first_sheet_name}'")
+            
+            # Fetch all data from the first sheet
+            range_name = first_sheet_name
+        
         result = sheets_service.spreadsheets().values().get(
             spreadsheetId=sheet_id,
             range=range_name
@@ -496,6 +544,11 @@ def fetch_rows(sheets_service, sheet_id: str, range_name: str) -> Tuple[List[str
     
     except HttpError as error:
         print(f"ERROR fetching sheet data: {error}")
+        if '404' in str(error):
+            print("\nTroubleshooting:")
+            print("1. Check that the Sheet ID is correct")
+            print("2. Ensure the sheet is shared with your Google account")
+            print("3. Verify you have at least 'Viewer' access to the sheet")
         sys.exit(1)
 
 # ============================================================================
@@ -511,13 +564,25 @@ def validate_row(row_dict: Dict[str, str], template_key: str) -> Tuple[bool, Opt
     """
     Validate a row has all required fields for the selected template.
     Returns (is_valid, error_reason).
+    
+    Special handling: Name can be provided as single field OR FirstName+LastName combined.
     """
     config = TEMPLATE_CONFIGS[template_key]
     
     # Check required fields
     for field in config['required_fields']:
-        if field not in row_dict or not row_dict[field].strip():
-            return False, f"Missing required field: {field}"
+        # Special case: Name might have been constructed from FirstName+LastName
+        if field == 'Name':
+            # Check if Name exists (either original or combined)
+            if field not in row_dict or not row_dict[field].strip():
+                # Also check if we have FirstName and LastName
+                has_first = 'FirstName' in row_dict and row_dict['FirstName'].strip()
+                has_last = 'LastName' in row_dict and row_dict['LastName'].strip()
+                if not (has_first and has_last):
+                    return False, f"Missing required field: {field} (or FirstName/LastName)"
+        else:
+            if field not in row_dict or not row_dict[field].strip():
+                return False, f"Missing required field: {field}"
     
     # Validate email format
     email = row_dict.get('Email', '').strip()
@@ -525,23 +590,173 @@ def validate_row(row_dict: Dict[str, str], template_key: str) -> Tuple[bool, Opt
         return False, f"Invalid email format: {email}"
     
     # Template-specific validation
-    if template_key == 'certificate':
-        if not row_dict.get('CertificateDriveLink', '').strip():
-            return False, "Missing CertificateDriveLink"
-    
-    elif template_key == 'event':
+    if template_key == 'event':
         if not row_dict.get('RSVP_URL', '').strip():
             return False, "Missing RSVP_URL"
     
     return True, None
 
 # ============================================================================
+# CERTIFICATE GENERATION
+# ============================================================================
+
+def detect_horizontal_guideline(template_path: str, dark_threshold: int = 60, 
+                                min_fraction: float = 0.4, search_margin: float = 0.15) -> Tuple[Optional[int], float]:
+    """Detect a predominantly dark horizontal line near the middle of the template."""
+    try:
+        with Image.open(template_path) as img:
+            gray = img.convert('L')
+            width, height = gray.size
+            pixels = gray.load()
+
+            start_y = int(height * search_margin)
+            end_y = int(height * (1 - search_margin))
+
+            best_y = None
+            best_fraction = 0.0
+
+            for y in range(start_y, end_y):
+                dark_pixels = sum(1 for x in range(width) if pixels[x, y] <= dark_threshold)
+                fraction = dark_pixels / width
+
+                if fraction > best_fraction:
+                    best_fraction = fraction
+                    best_y = y
+
+            if best_y is not None and best_fraction >= min_fraction:
+                return best_y, best_fraction
+
+            return None, best_fraction
+    except Exception:
+        return None, 0.0
+
+
+def generate_certificate(template_path: str, name: str, text_position: Optional[Tuple[int, int]], 
+                        font_size: int = 80, font_color: str = '#000000', 
+                        auto_position: bool = False, detected_line_y: Optional[int] = None,
+                        vertical_offset: int = 0) -> BytesIO:
+    """
+    Generate a certificate by overlaying name on template image.
+    Returns BytesIO object containing the PNG image.
+    """
+    if not PIL_AVAILABLE:
+        raise ImportError("Pillow is required for certificate generation. Install with: pip install Pillow")
+    
+    # Open template image
+    img = Image.open(template_path)
+    draw = ImageDraw.Draw(img)
+    
+    # Try to use a nice font, fall back to default if not available
+    try:
+        # Try common font paths
+        font_paths = [
+            "/usr/share/fonts/truetype/msttcorefonts/ScriptMTBold.ttf",
+            "/usr/share/fonts/truetype/scriptmt/ScriptMTBold.ttf",
+            "/usr/share/fonts/truetype/scriptmt/script.ttf",
+            "/usr/share/fonts/truetype/msttcorefonts/SCRIPTBL.TTF",
+            "/Library/Fonts/ScriptMTBold.ttf",
+            "/System/Library/Fonts/Supplemental/ScriptMTBold.ttf",
+            "C:\\Windows\\Fonts\\SCRIPTBL.TTF",
+            "C:\\Windows\\Fonts\\ScriptMTBold.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+            "/System/Library/Fonts/Helvetica.ttc",
+            "C:\\Windows\\Fonts\\Arial.ttf",
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf"
+        ]
+        font = None
+        for font_path in font_paths:
+            if os.path.exists(font_path):
+                font = ImageFont.truetype(font_path, font_size)
+                break
+        if font is None:
+            font = ImageFont.load_default()
+    except:
+        font = ImageFont.load_default()
+    
+    # Convert color hex to RGB
+    if font_color.startswith('#'):
+        font_color = font_color.lstrip('#')
+        rgb_color = tuple(int(font_color[i:i+2], 16) for i in (0, 2, 4))
+    else:
+        rgb_color = (0, 0, 0)  # Default black
+    
+    # Prepare text metrics
+    text = name.upper()
+
+    if hasattr(draw, "textbbox"):
+        bbox = draw.textbbox((0, 0), text, font=font)
+        text_width = bbox[2] - bbox[0]
+        text_height = bbox[3] - bbox[1]
+    else:
+        text_width, text_height = draw.textsize(text, font=font)
+
+    text_x, text_y = 0, 0
+
+    if auto_position:
+        if detected_line_y is None:
+            detected_line_y, _ = detect_horizontal_guideline(template_path)
+
+        if detected_line_y is not None:
+            text_x = max(0, (img.width - text_width) // 2)
+            margin = max(5, text_height // 6)
+            text_y = max(0, detected_line_y - text_height - margin)
+        elif text_position:
+            text_x, text_y = text_position
+        else:
+            text_x = max(0, (img.width - text_width) // 2)
+            text_y = max(0, (img.height - text_height) // 2)
+    else:
+        if not text_position:
+            raise ValueError("Manual text positioning selected but no coordinates were provided.")
+        text_x, text_y = text_position
+
+    text_y = max(0, min(img.height - text_height, text_y + vertical_offset))
+
+    # Draw text (name in UPPERCASE)
+    draw.text((text_x, text_y), text, fill=rgb_color, font=font)
+    
+    # Save to BytesIO
+    output = BytesIO()
+    img.save(output, format='PNG')
+    output.seek(0)
+    
+    return output
+
+# ============================================================================
 # EMAIL RENDERING
 # ============================================================================
 
 def render_certificate_html(row_dict: Dict[str, str]) -> str:
-    """Render Certificate HTML with dynamic sections."""
+    """Render Certificate HTML with dynamic sections and defaults for missing fields."""
     html = CERTIFICATE_HTML_TEMPLATE
+    
+    # Apply defaults for missing fields
+    defaults = {
+        'OrgName': 'IEEE BAU',
+        'CompletionDate': 'recently',
+        'SupportEmail': 'IEEE.BAU.LB@gmail.com',
+        'Year': str(datetime.now().year),
+        'TeamOrSignerName': 'Mohamad Al Ghoush',
+        'Title': ''
+    }
+    
+    # Merge defaults with row data (row data takes precedence)
+    for key, default_value in defaults.items():
+        if key not in row_dict or not row_dict[key].strip():
+            row_dict[key] = default_value
+    
+    # Certificate intro text - handles optional CourseTitle
+    course_title = row_dict.get('CourseTitle', '').strip()
+    completion_date = row_dict.get('CompletionDate', '').strip()
+    
+    if course_title and completion_date != 'recently':
+        intro_text = f'Congratulations on successfully completing <strong>{course_title}</strong> on <strong>{completion_date}</strong>. We are pleased to confirm your achievement and provide your official certificate of completion.'
+    elif course_title:
+        intro_text = f'Congratulations on successfully completing <strong>{course_title}</strong>! We are pleased to confirm your achievement and provide your official certificate of completion.'
+    elif completion_date != 'recently':
+        intro_text = f'Congratulations on your achievement! We are pleased to confirm your successful completion on <strong>{completion_date}</strong> and provide your official certificate.'
+    else:
+        intro_text = 'Congratulations on your achievement! We are pleased to provide your official certificate of completion.'
     
     # Verification section
     verification_html = ""
@@ -554,12 +769,14 @@ def render_certificate_html(row_dict: Dict[str, str]) -> str:
     footer_parts = []
     if row_dict.get('OrgAddress', '').strip():
         footer_parts.append(row_dict['OrgAddress'])
-    footer_parts.append(row_dict['SupportEmail'])
+    if row_dict.get('SupportEmail', '').strip():
+        footer_parts.append(row_dict['SupportEmail'])
     if row_dict.get('OrgPhone', '').strip():
         footer_parts.append(row_dict['OrgPhone'])
-    footer_contact = ' • '.join(footer_parts)
+    footer_contact = ' • '.join(footer_parts) if footer_parts else 'Contact us for more information'
     
     # Replace special sections
+    html = html.replace('{CertificateIntroText}', intro_text)
     html = html.replace('{VerificationSection}', verification_html)
     html = html.replace('{FooterContact}', footer_contact)
     
@@ -570,8 +787,35 @@ def render_certificate_html(row_dict: Dict[str, str]) -> str:
     return html
 
 def render_certificate_text(row_dict: Dict[str, str]) -> str:
-    """Render Certificate plain text."""
+    """Render Certificate plain text with defaults for missing fields."""
     text = CERTIFICATE_TEXT_TEMPLATE
+    
+    # Apply same defaults as HTML version
+    defaults = {
+        'OrgName': 'Our Organization',
+        'CompletionDate': 'recently',
+        'SupportEmail': 'support@example.com',
+        'Year': str(datetime.now().year),
+        'TeamOrSignerName': 'The Team',
+        'Title': ''
+    }
+    
+    for key, default_value in defaults.items():
+        if key not in row_dict or not row_dict[key].strip():
+            row_dict[key] = default_value
+    
+    # Certificate intro text - handles optional CourseTitle
+    course_title = row_dict.get('CourseTitle', '').strip()
+    completion_date = row_dict.get('CompletionDate', '').strip()
+    
+    if course_title and completion_date != 'recently':
+        intro_text_plain = f'Congratulations on successfully completing {course_title} on {completion_date}. We are pleased to confirm your achievement and provide your official certificate of completion.'
+    elif course_title:
+        intro_text_plain = f'Congratulations on successfully completing {course_title}! We are pleased to confirm your achievement and provide your official certificate of completion.'
+    elif completion_date != 'recently':
+        intro_text_plain = f'Congratulations on your achievement! We are pleased to confirm your successful completion on {completion_date} and provide your official certificate.'
+    else:
+        intro_text_plain = 'Congratulations on your achievement! We are pleased to provide your official certificate of completion.'
     
     # Verification text
     verification_text = ""
@@ -582,11 +826,13 @@ def render_certificate_text(row_dict: Dict[str, str]) -> str:
     footer_parts = []
     if row_dict.get('OrgAddress', '').strip():
         footer_parts.append(row_dict['OrgAddress'])
-    footer_parts.append(row_dict['SupportEmail'])
+    if row_dict.get('SupportEmail', '').strip():
+        footer_parts.append(row_dict['SupportEmail'])
     if row_dict.get('OrgPhone', '').strip():
         footer_parts.append(row_dict['OrgPhone'])
-    footer_contact = ' | '.join(footer_parts)
+    footer_contact = ' | '.join(footer_parts) if footer_parts else 'Contact us for more information'
     
+    text = text.replace('{CertificateIntroTextPlain}', intro_text_plain)
     text = text.replace('{VerificationText}', verification_text)
     text = text.replace('{FooterContactText}', footer_contact)
     
@@ -743,6 +989,10 @@ def render_subject(row_dict: Dict[str, str], template_key: str, custom_subject: 
         subject = custom_subject
     else:
         subject = TEMPLATE_CONFIGS[template_key]['subject_default']
+        
+        # For certificate template, add CourseTitle to subject if available
+        if template_key == 'certificate' and row_dict.get('CourseTitle', '').strip():
+            subject = f"Certificate of Completion — {row_dict['CourseTitle']}"
     
     # Replace placeholders
     for key, value in row_dict.items():
@@ -755,19 +1005,34 @@ def render_subject(row_dict: Dict[str, str], template_key: str, custom_subject: 
 # ============================================================================
 
 def build_message(to: str, subject: str, html_body: str, text_body: str, 
-                 from_address: Optional[str] = None) -> Dict:
-    """Build a MIME message for Gmail API."""
-    message = MIMEMultipart('alternative')
+                 from_address: Optional[str] = None, attachment: Optional[BytesIO] = None,
+                 attachment_filename: str = "certificate.png") -> Dict:
+    """Build a MIME message for Gmail API with optional attachment."""
+    message = MIMEMultipart('mixed') if attachment else MIMEMultipart('alternative')
     message['To'] = to
     message['Subject'] = subject
     if from_address:
         message['From'] = from_address
     
-    # Attach plain text and HTML parts
-    part1 = MIMEText(text_body, 'plain', 'utf-8')
-    part2 = MIMEText(html_body, 'html', 'utf-8')
-    message.attach(part1)
-    message.attach(part2)
+    # Create message body part
+    if attachment:
+        body_part = MIMEMultipart('alternative')
+        part1 = MIMEText(text_body, 'plain', 'utf-8')
+        part2 = MIMEText(html_body, 'html', 'utf-8')
+        body_part.attach(part1)
+        body_part.attach(part2)
+        message.attach(body_part)
+        
+        # Attach certificate image
+        img = MIMEImage(attachment.read(), name=attachment_filename)
+        img.add_header('Content-Disposition', 'attachment', filename=attachment_filename)
+        message.attach(img)
+    else:
+        # No attachment, just text and HTML
+        part1 = MIMEText(text_body, 'plain', 'utf-8')
+        part2 = MIMEText(html_body, 'html', 'utf-8')
+        message.attach(part1)
+        message.attach(part2)
     
     # Encode for Gmail API
     raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode('utf-8')
@@ -809,13 +1074,29 @@ def log_result(log_path: str, email: str, subject: str, status: str,
 # INTERACTIVE PROMPTS
 # ============================================================================
 
-def prompt_sheet_info() -> Tuple[str, str]:
-    """Prompt for Google Sheet ID and range."""
+def prompt_sheet_info() -> str:
+    """Prompt for Google Sheet URL or ID."""
     print("=== Google Sheet Configuration ===")
-    sheet_id = input("Enter Google Sheet ID (from URL between /d/ and /edit): ").strip()
-    range_name = input("Enter range (default: Sheet1!A1:Z1000): ").strip() or "Sheet1!A1:Z1000"
+    print("You can paste:")
+    print("  • Full Google Sheets URL")
+    print("  • Just the Sheet ID")
     print()
-    return sheet_id, range_name
+    
+    user_input = input("Enter Google Sheet URL or ID: ").strip()
+    
+    if not user_input:
+        print("ERROR: Sheet URL/ID cannot be empty")
+        sys.exit(1)
+    
+    # Extract ID from URL if needed
+    sheet_id = extract_sheet_id(user_input)
+    
+    # Show what was extracted
+    if sheet_id != user_input:
+        print(f"✓ Extracted Sheet ID: {sheet_id}")
+    
+    print()
+    return sheet_id
 
 def prompt_template_selection() -> str:
     """Prompt for template selection."""
@@ -837,6 +1118,10 @@ def prompt_column_mapping(headers: List[str], template_key: str) -> Dict[str, in
     """
     Prompt user to map required fields to column indices.
     Returns a mapping of field_name -> column_index.
+    
+    Special handling for Name field:
+    - Accepts either "Name" OR "FirstName"+"LastName"
+    - Auto-detects and combines if split
     """
     config = TEMPLATE_CONFIGS[template_key]
     all_fields = config['required_fields'] + config['optional_fields']
@@ -847,8 +1132,28 @@ def prompt_column_mapping(headers: List[str], template_key: str) -> Dict[str, in
     
     mapping = {}
     
+    # Special handling for Name field
+    # Check if we have FirstName and LastName instead of Name
+    has_firstname = any(h.lower() in ['firstname', 'first name', 'first_name'] for h in headers)
+    has_lastname = any(h.lower() in ['lastname', 'last name', 'last_name'] for h in headers)
+    has_name = any(h.lower() == 'name' for h in headers)
+    
+    if not has_name and has_firstname and has_lastname:
+        print("✓ Detected FirstName and LastName columns - will combine them automatically")
+        # Find the indices
+        for idx, header in enumerate(headers):
+            if header.lower() in ['firstname', 'first name', 'first_name']:
+                mapping['FirstName'] = idx
+            elif header.lower() in ['lastname', 'last name', 'last_name']:
+                mapping['LastName'] = idx
+        print()
+    
     # Auto-detect and suggest mappings
     for field in all_fields:
+        # Skip Name if we're using FirstName/LastName
+        if field == 'Name' and 'FirstName' in mapping and 'LastName' in mapping:
+            continue
+            
         # Try to find exact match (case-insensitive)
         suggested_idx = None
         for idx, header in enumerate(headers):
@@ -874,7 +1179,7 @@ def prompt_column_mapping(headers: List[str], template_key: str) -> Dict[str, in
                             mapping[field] = idx
                             break
         else:
-            if is_required:
+            if is_required and field != 'Name':  # Name might be split
                 prompt_text = f"{req_label} Map '{field}' (column index or name): "
                 response = input(prompt_text).strip()
                 if response:
@@ -885,9 +1190,106 @@ def prompt_column_mapping(headers: List[str], template_key: str) -> Dict[str, in
                             if header.lower() == response.lower():
                                 mapping[field] = idx
                                 break
+            elif is_required and field == 'Name':
+                # Prompt for Name alternatives
+                if 'FirstName' not in mapping:
+                    prompt_text = f"{req_label} Map '{field}' (or enter 'FirstName' and 'LastName' separately): "
+                    response = input(prompt_text).strip()
+                    if response:
+                        try:
+                            mapping[field] = int(response)
+                        except ValueError:
+                            for idx, header in enumerate(headers):
+                                if header.lower() == response.lower():
+                                    mapping[field] = idx
+                                    break
     
     print()
     return mapping
+
+def prompt_certificate_config() -> Dict:
+    """Prompt for certificate template configuration."""
+    print("=== Certificate Configuration ===")
+    print("The script will generate personalized certificates by adding each person's")
+    print("name (in CAPITALS) to your certificate template image.")
+    print()
+    
+    # Get template path
+    template_path = input("Enter path to certificate template image (PNG): ").strip()
+    
+    if not template_path or not os.path.exists(template_path):
+        print(f"✗ Error: Template file not found: {template_path}")
+        print("Please provide a valid PNG file path.")
+        sys.exit(1)
+    
+    print(f"✓ Template found: {template_path}")
+    print()
+
+    auto_detect_input = input("Auto-detect name position from template? (Y/n): ").strip().lower()
+    auto_position = auto_detect_input != 'n'
+    detected_line_y = None
+    coverage = 0.0
+
+    if auto_position:
+        detected_line_y, coverage = detect_horizontal_guideline(template_path)
+        if detected_line_y is not None:
+            print(f"✓ Detected horizontal guideline at Y={detected_line_y} (coverage {coverage:.0%})")
+        else:
+            print("⚠ Could not detect a clear horizontal guideline. Falling back to manual input.")
+            auto_position = False
+
+    text_position = None
+
+    if not auto_position:
+        print("Where should the name be placed on the certificate?")
+        print("Enter X and Y coordinates (in pixels from top-left corner)")
+        print("Example: If name should be at center-ish, try X=400 Y=600")
+        print()
+
+        x_pos = input("X position (default: 400): ").strip()
+        y_pos = input("Y position (default: 600): ").strip()
+
+        x_val = int(x_pos) if x_pos else 400
+        y_val = int(y_pos) if y_pos else 600
+        text_position = (x_val, y_val)
+    
+    vertical_offset_input = input("Vertical offset to adjust name placement (positive = down, negative = up, default: 0): ").strip()
+    vertical_offset = int(vertical_offset_input) if vertical_offset_input else 0
+
+    print()
+    
+    # Get font size
+    font_size_input = input("Font size (default: 80): ").strip()
+    font_size = int(font_size_input) if font_size_input else 80
+    
+    # Get font color
+    print()
+    font_color = input("Font color in hex (default: #000000 for black): ").strip() or "#000000"
+    
+    print()
+    print("✓ Configuration:")
+    print(f"  Template: {template_path}")
+    if auto_position and detected_line_y is not None:
+        print(f"  Auto Position: Placing name above line at Y={detected_line_y} (coverage {coverage:.0%})")
+    elif auto_position:
+        print("  Auto Position: Enabled (fallback to center)")
+    else:
+        print(f"  Position: {text_position}")
+    if vertical_offset:
+        print(f"  Vertical Offset: {vertical_offset}")
+    print(f"  Font Size: {font_size}")
+    print(f"  Color: {font_color}")
+    print()
+    
+    return {
+        'template_path': template_path,
+        'text_position': text_position,
+        'font_size': font_size,
+        'font_color': font_color,
+        'auto_position': auto_position,
+        'detected_line_y': detected_line_y,
+        'vertical_offset': vertical_offset
+    }
 
 def prompt_options() -> Dict:
     """Prompt for send options."""
@@ -938,10 +1340,7 @@ def preview_messages(rows_data: List[Dict[str, str]], template_key: str,
         print(f"Body (first 200 chars): {text_body[:200]}...")
         
         # Show key links
-        if template_key == 'certificate':
-            link = row_dict.get('CertificateDriveLink', 'N/A')
-            print(f"Certificate Link: {link}")
-        else:
+        if template_key == 'event':
             rsvp = row_dict.get('RSVP_URL', 'N/A')
             print(f"RSVP Link: {rsvp}")
     
@@ -970,11 +1369,11 @@ def main():
     
     # Step 2: Get sheet info
     print("Step 2: Sheet Configuration")
-    sheet_id, range_name = prompt_sheet_info()
+    sheet_id = prompt_sheet_info()
     
-    # Step 3: Fetch data
+    # Step 3: Fetch data (auto-detects first sheet and fetches all data)
     print("Step 3: Fetching data from sheet...")
-    headers, data_rows = fetch_rows(sheets_service, sheet_id, range_name)
+    headers, data_rows = fetch_rows(sheets_service, sheet_id, None)
     print(f"✓ Fetched {len(data_rows)} rows with {len(headers)} columns\n")
     
     # Step 4: Select template
@@ -985,6 +1384,12 @@ def main():
     print("Step 5: Column Mapping")
     field_mapping = prompt_column_mapping(headers, template_key)
     
+    # Step 5.5: Get certificate configuration for certificate template
+    cert_config = None
+    if template_key == 'certificate':
+        print("Step 5.5: Certificate Configuration")
+        cert_config = prompt_certificate_config()
+    
     # Convert rows to dictionaries
     rows_data = []
     for row in data_rows:
@@ -994,6 +1399,13 @@ def main():
                 row_dict[field] = row[col_idx].strip()
             else:
                 row_dict[field] = ''
+        
+        # Combine FirstName and LastName into Name if needed
+        if 'FirstName' in row_dict and 'LastName' in row_dict and 'Name' not in row_dict:
+            first = row_dict.get('FirstName', '').strip()
+            last = row_dict.get('LastName', '').strip()
+            row_dict['Name'] = f"{first} {last}".strip()
+        
         rows_data.append(row_dict)
     
     # Step 6: Options
@@ -1040,8 +1452,31 @@ def main():
         subject = render_subject(row_dict, template_key, options['custom_subject'])
         html_body, text_body = render_email(row_dict, template_key)
         
+        # Generate certificate if needed
+        certificate_attachment = None
+        if template_key == 'certificate' and cert_config:
+            try:
+                name = row_dict.get('Name', 'Unknown')
+                certificate_attachment = generate_certificate(
+                    cert_config['template_path'],
+                    name,
+                    cert_config.get('text_position'),
+                    cert_config['font_size'],
+                    cert_config['font_color'],
+                    auto_position=cert_config.get('auto_position', False),
+                    detected_line_y=cert_config.get('detected_line_y'),
+                    vertical_offset=cert_config.get('vertical_offset', 0)
+                )
+                attachment_filename = f"certificate_{name.upper().replace(' ', '_')}.png"
+            except Exception as e:
+                print(f"⚠ Warning: Could not generate certificate for {name}: {e}")
+                attachment_filename = "certificate.png"
+        else:
+            attachment_filename = "certificate.png"
+        
         # Build message
-        message = build_message(email, subject, html_body, text_body, options['from_address'])
+        message = build_message(email, subject, html_body, text_body, options['from_address'], 
+                               certificate_attachment, attachment_filename)
         
         # Send or dry-run
         if options['dry_run']:

@@ -24,29 +24,23 @@
                             <p style="margin: 0 0 20px; font-size: 16px; color: #2d3748; line-height: 1.6;">Dear {Name},</p>
                             
                             <p style="margin: 0 0 20px; font-size: 16px; color: #2d3748; line-height: 1.6;">
-                                Congratulations on successfully completing <strong>{CourseTitle}</strong> on <strong>{CompletionDate}</strong>. 
-                                We are pleased to confirm your achievement and provide your official certificate of completion.
+                                {CertificateIntroText}
                             </p>
                             
                             <p style="margin: 0 0 30px; font-size: 16px; color: #2d3748; line-height: 1.6;">
-                                Your certificate is securely hosted and accessible via the link below:
+                                Your personalized certificate is attached to this email as a PNG image. 
+                                You can download, print, or share it as needed.
                             </p>
                             
-                            <!-- Certificate Button -->
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                            <!-- Certificate Attachment Notice -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f7fafc; border-radius: 6px; margin-bottom: 30px;">
                                 <tr>
-                                    <td align="center" style="padding: 0 0 30px;">
-                                        <a href="{CertificateDriveLink}" 
-                                           style="display: inline-block; padding: 16px 48px; background-color: #2c5282; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: bold; border-radius: 6px; border: none;">
-                                            View Certificate
-                                        </a>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td align="center" style="padding: 0 0 30px;">
-                                        <p style="margin: 0; font-size: 14px; color: #718096;">
-                                            If the button does not work, copy this link:<br>
-                                            <a href="{CertificateDriveLink}" style="color: #2c5282; word-break: break-all;">{CertificateDriveLink}</a>
+                                    <td style="padding: 24px; text-align: center;">
+                                        <p style="margin: 0; font-size: 16px; color: #2d3748;">
+                                            📎 <strong>Certificate attached</strong> to this email
+                                        </p>
+                                        <p style="margin: 8px 0 0; font-size: 14px; color: #718096;">
+                                            Look for the attachment at the bottom of this email
                                         </p>
                                     </td>
                                 </tr>
@@ -114,4 +108,3 @@
     </table>
 </body>
 </html>
-"""
