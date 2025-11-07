@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Certificate of Completion</title>
+    <title>Thank You for Attending</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: Arial, Helvetica, sans-serif;">
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f5;">
@@ -14,72 +14,35 @@
                     <tr>
                         <td style="padding: 40px 40px 30px; text-align: center; border-bottom: 3px solid #2c5282;">
                             <h1 style="margin: 0; font-size: 26px; color: #1a202c; font-weight: bold;">{OrgName}</h1>
-                            <p style="margin: 8px 0 0; font-size: 14px; color: #718096;">Certificate Delivery</p>
+                            <p style="margin: 8px 0 0; font-size: 14px; color: #718096;">Thank You for Attending</p>
                         </td>
                     </tr>
-                    
+
                     <!-- Body -->
                     <tr>
                         <td style="padding: 40px;">
                             <p style="margin: 0 0 20px; font-size: 16px; color: #2d3748; line-height: 1.6;">Dear {Name},</p>
-                            
+
                             <p style="margin: 0 0 20px; font-size: 16px; color: #2d3748; line-height: 1.6;">
-                                {CertificateIntroText}
+                                {ThankYouMessage}
                             </p>
-                            
+
                             <p style="margin: 0 0 30px; font-size: 16px; color: #2d3748; line-height: 1.6;">
-                                Your personalized certificate is attached to this email as a PNG image. 
-                                You can download, print, or share it as needed.
+                                {AttachmentLine}
                             </p>
-                            
-                            <!-- Certificate Attachment Notice -->
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f7fafc; border-radius: 6px; margin-bottom: 30px;">
-                                <tr>
-                                    <td style="padding: 24px; text-align: center;">
-                                        <p style="margin: 0; font-size: 16px; color: #2d3748;">
-                                            📎 <strong>Certificate attached</strong> to this email
-                                        </p>
-                                        <p style="margin: 8px 0 0; font-size: 14px; color: #718096;">
-                                            Look for the attachment at the bottom of this email
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
-                            
-                            <!-- Verification Details -->
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f7fafc; border-radius: 6px; margin-bottom: 30px;">
-                                <tr>
-                                    <td style="padding: 24px;">
-                                        <p style="margin: 0 0 12px; font-size: 14px; color: #2d3748; font-weight: bold;">Certificate Details</p>
-                                        <p style="margin: 0 0 8px; font-size: 14px; color: #4a5568; line-height: 1.6;">
-                                            <strong>Certificate ID:</strong> {CertificateID}
-                                        </p>
-                                        <p style="margin: 0 0 8px; font-size: 14px; color: #4a5568; line-height: 1.6;">
-                                            <strong>Issued by:</strong> {OrgName}
-                                        </p>
-                                        <p style="margin: 0 0 8px; font-size: 14px; color: #4a5568; line-height: 1.6;">
-                                            <strong>Completion Date:</strong> {CompletionDate}
-                                        </p>
-                                        {VerificationSection}
-                                    </td>
-                                </tr>
-                            </table>
-                            
-                            <p style="margin: 0 0 20px; font-size: 16px; color: #2d3748; line-height: 1.6;">
-                                <strong>Next Steps:</strong>
-                            </p>
-                            <ul style="margin: 0 0 30px; padding-left: 24px; font-size: 16px; color: #2d3748; line-height: 1.8;">
-                                <li>Download and save your certificate for your records</li>
-                                <li>Add this achievement to your professional profile (LinkedIn, resume, etc.)</li>
-                                <li>Request a printed copy if needed by contacting our support team</li>
-                            </ul>
-                            
+
+                            {EventDetailsSection}
+
+                            {ResourcesSection}
+
+                            {FeedbackSection}
+
                             <p style="margin: 0 0 8px; font-size: 16px; color: #2d3748; line-height: 1.6;">
-                                Should you have any questions or require assistance, please contact us at 
+                                If you have any questions or would like to stay in touch, please contact us at
                                 <a href="mailto:{SupportEmail}" style="color: #2c5282; text-decoration: none;">{SupportEmail}</a>.
                             </p>
-                            
-                            <p style="margin: 30px 0 8px; font-size: 16px; color: #2d3748; line-height: 1.6;">Kind regards,</p>
+
+                            <p style="margin: 30px 0 8px; font-size: 16px; color: #2d3748; line-height: 1.6;">Warm regards,</p>
                             <p style="margin: 0; font-size: 16px; color: #2d3748; line-height: 1.6;">
                                 <strong>{TeamOrSignerName}</strong><br>
                                 {Title}<br>
@@ -87,7 +50,7 @@
                             </p>
                         </td>
                     </tr>
-                    
+
                     <!-- Footer -->
                     <tr>
                         <td style="padding: 30px 40px; background-color: #f7fafc; border-top: 1px solid #e2e8f0; border-radius: 0 0 8px 8px;">
@@ -95,7 +58,7 @@
                                 {FooterContact}
                             </p>
                             <p style="margin: 0 0 12px; font-size: 12px; color: #a0aec0; line-height: 1.5; text-align: center;">
-                                This message and certificate link are intended for {Name}. Please do not share without consent.
+                                This message and certificate are intended for {Name}. Please do not share without consent.
                             </p>
                             <p style="margin: 0; font-size: 12px; color: #a0aec0; text-align: center;">
                                 &copy; {Year} {OrgName}. All rights reserved.
@@ -108,3 +71,4 @@
     </table>
 </body>
 </html>
+"""

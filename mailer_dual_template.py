@@ -47,7 +47,7 @@ CERTIFICATE_HTML_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Certificate of Completion</title>
+    <title>Thank You for Attending</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: Arial, Helvetica, sans-serif;">
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f5;">
@@ -58,69 +58,35 @@ CERTIFICATE_HTML_TEMPLATE = """
                     <tr>
                         <td style="padding: 40px 40px 30px; text-align: center; border-bottom: 3px solid #2c5282;">
                             <h1 style="margin: 0; font-size: 26px; color: #1a202c; font-weight: bold;">{OrgName}</h1>
-                            <p style="margin: 8px 0 0; font-size: 14px; color: #718096;">Certificate Delivery</p>
+                            <p style="margin: 8px 0 0; font-size: 14px; color: #718096;">Thank You for Attending</p>
                         </td>
                     </tr>
-                    
+
                     <!-- Body -->
                     <tr>
                         <td style="padding: 40px;">
                             <p style="margin: 0 0 20px; font-size: 16px; color: #2d3748; line-height: 1.6;">Dear {Name},</p>
-                            
+
                             <p style="margin: 0 0 20px; font-size: 16px; color: #2d3748; line-height: 1.6;">
-                                {CertificateIntroText}
+                                {ThankYouMessage}
                             </p>
-                            
+
                             <p style="margin: 0 0 30px; font-size: 16px; color: #2d3748; line-height: 1.6;">
-                                Your personalized certificate is attached to this email as a PNG image. 
-                                You can download, print, or share it as needed.
+                                {AttachmentLine}
                             </p>
-                            
-                            <!-- Certificate Attachment Notice -->
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f7fafc; border-radius: 6px; margin-bottom: 30px;">
-                                <tr>
-                                    <td style="padding: 24px; text-align: center;">
-                                        <p style="margin: 0; font-size: 16px; color: #2d3748;">
-                                            📎 <strong>Certificate attached</strong> to this email
-                                        </p>
-                                        <p style="margin: 8px 0 0; font-size: 14px; color: #718096;">
-                                            Look for the attachment at the bottom of this email
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
-                            
-                            <!-- Verification Details -->
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f7fafc; border-radius: 6px; margin-bottom: 30px;">
-                                <tr>
-                                    <td style="padding: 24px;">
-                                        <p style="margin: 0 0 12px; font-size: 14px; color: #2d3748; font-weight: bold;">Certificate Details</p>
-                                        <p style="margin: 0 0 8px; font-size: 14px; color: #4a5568; line-height: 1.6;">
-                                            <strong>Issued by:</strong> {OrgName}
-                                        </p>
-                                        <p style="margin: 0 0 8px; font-size: 14px; color: #4a5568; line-height: 1.6;">
-                                            <strong>Completion Date:</strong> {CompletionDate}
-                                        </p>
-                                        {VerificationSection}
-                                    </td>
-                                </tr>
-                            </table>
-                            
-                            <p style="margin: 0 0 20px; font-size: 16px; color: #2d3748; line-height: 1.6;">
-                                <strong>Next Steps:</strong>
-                            </p>
-                            <ul style="margin: 0 0 30px; padding-left: 24px; font-size: 16px; color: #2d3748; line-height: 1.8;">
-                                <li>Download and save your certificate for your records</li>
-                                <li>Add this achievement to your professional profile (LinkedIn, resume, etc.)</li>
-                                <li>Request a printed copy if needed by contacting our support team</li>
-                            </ul>
-                            
+
+                            {EventDetailsSection}
+
+                            {ResourcesSection}
+
+                            {FeedbackSection}
+
                             <p style="margin: 0 0 8px; font-size: 16px; color: #2d3748; line-height: 1.6;">
-                                Should you have any questions or require assistance, please contact us at 
+                                If you have any questions or would like to stay in touch, please contact us at
                                 <a href="mailto:{SupportEmail}" style="color: #2c5282; text-decoration: none;">{SupportEmail}</a>.
                             </p>
-                            
-                            <p style="margin: 30px 0 8px; font-size: 16px; color: #2d3748; line-height: 1.6;">Kind regards,</p>
+
+                            <p style="margin: 30px 0 8px; font-size: 16px; color: #2d3748; line-height: 1.6;">Warm regards,</p>
                             <p style="margin: 0; font-size: 16px; color: #2d3748; line-height: 1.6;">
                                 <strong>{TeamOrSignerName}</strong><br>
                                 {Title}<br>
@@ -128,7 +94,7 @@ CERTIFICATE_HTML_TEMPLATE = """
                             </p>
                         </td>
                     </tr>
-                    
+
                     <!-- Footer -->
                     <tr>
                         <td style="padding: 30px 40px; background-color: #f7fafc; border-top: 1px solid #e2e8f0; border-radius: 0 0 8px 8px;">
@@ -136,7 +102,7 @@ CERTIFICATE_HTML_TEMPLATE = """
                                 {FooterContact}
                             </p>
                             <p style="margin: 0 0 12px; font-size: 12px; color: #a0aec0; line-height: 1.5; text-align: center;">
-                                This message and certificate link are intended for {Name}. Please do not share without consent.
+                                This message and certificate are intended for {Name}. Please do not share without consent.
                             </p>
                             <p style="margin: 0; font-size: 12px; color: #a0aec0; text-align: center;">
                                 &copy; {Year} {OrgName}. All rights reserved.
@@ -288,38 +254,22 @@ EVENT_HTML_TEMPLATE = """
 
 CERTIFICATE_TEXT_TEMPLATE = """
 {OrgName}
-Certificate Delivery
+Thank You for Attending
 
 Dear {Name},
 
-{CertificateIntroTextPlain}
+{ThankYouMessagePlain}
 
-Your personalized certificate is attached to this email as a PNG image.
-You can download, print, or share it as needed.
+{AttachmentLinePlain}
 
-📎 CERTIFICATE ATTACHED - Check the attachment at the bottom of this email
-
-CERTIFICATE DETAILS
-Issued by: {OrgName}
-Completion Date: {CompletionDate}
-{VerificationText}
-
-NEXT STEPS
-- Download and save your certificate for your records
-- Add this achievement to your professional profile (LinkedIn, resume, etc.)
-- Request a printed copy if needed by contacting our support team
-
-Should you have any questions or require assistance, please contact us at {SupportEmail}.
-
-Kind regards,
+{EventDetailsBlock}{ResourcesBlock}{FeedbackBlock}
+Warm regards,
 {TeamOrSignerName}
 {Title}
 {OrgName}
 
 ---
 {FooterContactText}
-This message and certificate link are intended for {Name}. Please do not share without consent.
-
 © {Year} {OrgName}. All rights reserved.
 """
 
@@ -368,15 +318,15 @@ Kind regards,
 
 TEMPLATE_CONFIGS = {
     'certificate': {
-        'name': 'Certificate Delivery',
+        'name': 'Thank You for Attending',
         'html_template': CERTIFICATE_HTML_TEMPLATE,
         'text_template': CERTIFICATE_TEXT_TEMPLATE,
-        'subject_default': 'Certificate of Completion',
+        'subject_default': 'Thank You for Attending',
         'required_fields': ['Name', 'Email'],
-        'optional_fields': ['CourseTitle', 'CompletionDate', 
-                           'OrgName', 'SupportEmail', 'Year',
-                           'VerificationURL', 'OrgAddress', 'OrgPhone', 
-                           'TeamOrSignerName', 'Title']
+        'optional_fields': ['EventName', 'CourseTitle', 'EventDate', 'CompletionDate',
+                           'EventLocation', 'ResourcesURL', 'ResourcesDescription',
+                           'FeedbackURL', 'OrgName', 'SupportEmail', 'Year',
+                           'OrgAddress', 'OrgPhone', 'TeamOrSignerName', 'Title']
     },
     'event': {
         'name': 'Upcoming Event Invitation',
@@ -727,119 +677,229 @@ def generate_certificate(template_path: str, name: str, text_position: Optional[
 # ============================================================================
 
 def render_certificate_html(row_dict: Dict[str, str]) -> str:
-    """Render Certificate HTML with dynamic sections and defaults for missing fields."""
+    """Render thank-you HTML email with dynamic sections and defaults."""
     html = CERTIFICATE_HTML_TEMPLATE
-    
-    # Apply defaults for missing fields
+
     defaults = {
         'OrgName': 'IEEE BAU',
-        'CompletionDate': 'recently',
         'SupportEmail': 'IEEE.BAU.LB@gmail.com',
         'Year': str(datetime.now().year),
         'TeamOrSignerName': 'Mohamad Al Ghoush',
         'Title': ''
     }
-    
-    # Merge defaults with row data (row data takes precedence)
+
     for key, default_value in defaults.items():
-        if key not in row_dict or not row_dict[key].strip():
+        if key not in row_dict or not str(row_dict[key]).strip():
             row_dict[key] = default_value
-    
-    # Certificate intro text - handles optional CourseTitle
-    course_title = row_dict.get('CourseTitle', '').strip()
-    completion_date = row_dict.get('CompletionDate', '').strip()
-    
-    if course_title and completion_date != 'recently':
-        intro_text = f'Congratulations on successfully completing <strong>{course_title}</strong> on <strong>{completion_date}</strong>. We are pleased to confirm your achievement and provide your official certificate of completion.'
-    elif course_title:
-        intro_text = f'Congratulations on successfully completing <strong>{course_title}</strong>! We are pleased to confirm your achievement and provide your official certificate of completion.'
-    elif completion_date != 'recently':
-        intro_text = f'Congratulations on your achievement! We are pleased to confirm your successful completion on <strong>{completion_date}</strong> and provide your official certificate.'
+
+    # Backwards compatibility with previous column names
+    if not str(row_dict.get('EventName', '')).strip() and str(row_dict.get('CourseTitle', '')).strip():
+        row_dict['EventName'] = row_dict['CourseTitle'].strip()
+    if not str(row_dict.get('EventDate', '')).strip() and str(row_dict.get('CompletionDate', '')).strip():
+        row_dict['EventDate'] = row_dict['CompletionDate'].strip()
+
+    event_name = str(row_dict.get('EventName', '')).strip()
+    event_date = str(row_dict.get('EventDate', '')).strip()
+    event_location = str(row_dict.get('EventLocation', '')).strip()
+    org_name = row_dict.get('OrgName', 'our organization')
+
+    if event_name and event_date:
+        thank_you_message = (
+            f"Thank you for attending <strong>{event_name}</strong> on <strong>{event_date}</strong>. "
+            f"Your presence helped make the experience memorable for our community at {org_name}."
+        )
+    elif event_name:
+        thank_you_message = (
+            f"Thank you for attending <strong>{event_name}</strong>. "
+            "We truly appreciated having you with us."
+        )
     else:
-        intro_text = 'Congratulations on your achievement! We are pleased to provide your official certificate of completion.'
-    
-    # Verification section
-    verification_html = ""
-    if row_dict.get('VerificationURL', '').strip():
-        verification_html = f'''<p style="margin: 0; font-size: 14px; color: #4a5568; line-height: 1.6;">
-            <strong>Verify at:</strong> <a href="{row_dict['VerificationURL']}" style="color: #2c5282;">{row_dict['VerificationURL']}</a>
-        </p>'''
-    
-    # Footer contact
+        thank_you_message = (
+            "Thank you for attending our recent gathering. We truly appreciated having you with us."
+        )
+
+    attachment_line = (
+        "Your certificate of appreciation is attached to this email as a PNG image. "
+        "Feel free to download, print, or share it as you wish."
+    )
+
+    # Event details card
+    detail_lines: List[str] = []
+    if event_name:
+        detail_lines.append(
+            f'<p style="margin: 0 0 8px; font-size: 14px; color: #4a5568; line-height: 1.6;">'
+            f'<strong>Event:</strong> {event_name}</p>'
+        )
+    if event_date:
+        detail_lines.append(
+            f'<p style="margin: 0 0 8px; font-size: 14px; color: #4a5568; line-height: 1.6;">'
+            f'<strong>Date:</strong> {event_date}</p>'
+        )
+    if event_location:
+        detail_lines.append(
+            f'<p style="margin: 0; font-size: 14px; color: #4a5568; line-height: 1.6;">'
+            f'<strong>Location:</strong> {event_location}</p>'
+        )
+
+    if detail_lines:
+        event_details_html = (
+            '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" '
+            'style="background-color: #f7fafc; border-radius: 6px; margin-bottom: 30px;">'
+            '<tr><td style="padding: 24px;">'
+            '<p style="margin: 0 0 12px; font-size: 14px; color: #2d3748; font-weight: bold;">Event Highlights</p>'
+            + ''.join(detail_lines) +
+            '</td></tr></table>'
+        )
+    else:
+        event_details_html = ''
+
+    # Resources section
+    resources_url = str(row_dict.get('ResourcesURL', '')).strip()
+    resources_desc = str(row_dict.get('ResourcesDescription', '')).strip()
+    if resources_url:
+        resources_label = resources_desc or 'Access post-event resources'
+        resources_html = (
+            '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" '
+            'style="background-color: #edf2f7; border-radius: 6px; margin-bottom: 30px;">'
+            '<tr><td style="padding: 24px; text-align: center;">'
+            '<p style="margin: 0 0 8px; font-size: 16px; color: #2d3748;">📚 <strong>Keep exploring</strong></p>'
+            f'<a href="{resources_url}" style="display: inline-block; margin-top: 12px; padding: 12px 32px; '
+            'background-color: #2c5282; color: #ffffff; text-decoration: none; font-size: 15px; border-radius: 6px;">'
+            f'{resources_label}</a>'
+            '</td></tr></table>'
+        )
+    else:
+        resources_html = ''
+
+    # Feedback section
+    feedback_url = str(row_dict.get('FeedbackURL', '')).strip()
+    if feedback_url:
+        feedback_html = (
+            '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" '
+            'style="background-color: #fdf2f8; border-radius: 6px; margin-bottom: 30px;">'
+            '<tr><td style="padding: 24px; text-align: center;">'
+            '<p style="margin: 0 0 8px; font-size: 16px; color: #2d3748;">💬 <strong>Share your feedback</strong></p>'
+            f'<a href="{feedback_url}" style="display: inline-block; margin-top: 12px; padding: 12px 32px; '
+            'background-color: #d53f8c; color: #ffffff; text-decoration: none; font-size: 15px; border-radius: 6px;">'
+            'Complete the feedback form</a>'
+            '</td></tr></table>'
+        )
+    else:
+        feedback_html = ''
+
     footer_parts = []
-    if row_dict.get('OrgAddress', '').strip():
-        footer_parts.append(row_dict['OrgAddress'])
-    if row_dict.get('SupportEmail', '').strip():
-        footer_parts.append(row_dict['SupportEmail'])
-    if row_dict.get('OrgPhone', '').strip():
-        footer_parts.append(row_dict['OrgPhone'])
-    footer_contact = ' • '.join(footer_parts) if footer_parts else 'Contact us for more information'
-    
-    # Replace special sections
-    html = html.replace('{CertificateIntroText}', intro_text)
-    html = html.replace('{VerificationSection}', verification_html)
+    if str(row_dict.get('OrgAddress', '')).strip():
+        footer_parts.append(row_dict['OrgAddress'].strip())
+    if str(row_dict.get('SupportEmail', '')).strip():
+        footer_parts.append(row_dict['SupportEmail'].strip())
+    if str(row_dict.get('OrgPhone', '')).strip():
+        footer_parts.append(row_dict['OrgPhone'].strip())
+    footer_contact = ' • '.join(footer_parts) if footer_parts else 'Stay connected with us'
+
+    html = html.replace('{ThankYouMessage}', thank_you_message)
+    html = html.replace('{AttachmentLine}', attachment_line)
+    html = html.replace('{EventDetailsSection}', event_details_html)
+    html = html.replace('{ResourcesSection}', resources_html)
+    html = html.replace('{FeedbackSection}', feedback_html)
     html = html.replace('{FooterContact}', footer_contact)
-    
-    # Replace all placeholders
+
     for key, value in row_dict.items():
         html = html.replace(f'{{{key}}}', str(value))
-    
+
     return html
 
 def render_certificate_text(row_dict: Dict[str, str]) -> str:
-    """Render Certificate plain text with defaults for missing fields."""
+    """Render thank-you plain text email with defaults for missing fields."""
     text = CERTIFICATE_TEXT_TEMPLATE
-    
-    # Apply same defaults as HTML version
+
     defaults = {
-        'OrgName': 'Our Organization',
-        'CompletionDate': 'recently',
-        'SupportEmail': 'support@example.com',
+        'OrgName': 'IEEE BAU',
+        'SupportEmail': 'IEEE.BAU.LB@gmail.com',
         'Year': str(datetime.now().year),
-        'TeamOrSignerName': 'The Team',
+        'TeamOrSignerName': 'Mohamad Al Ghoush',
         'Title': ''
     }
-    
+
     for key, default_value in defaults.items():
-        if key not in row_dict or not row_dict[key].strip():
+        if key not in row_dict or not str(row_dict[key]).strip():
             row_dict[key] = default_value
-    
-    # Certificate intro text - handles optional CourseTitle
-    course_title = row_dict.get('CourseTitle', '').strip()
-    completion_date = row_dict.get('CompletionDate', '').strip()
-    
-    if course_title and completion_date != 'recently':
-        intro_text_plain = f'Congratulations on successfully completing {course_title} on {completion_date}. We are pleased to confirm your achievement and provide your official certificate of completion.'
-    elif course_title:
-        intro_text_plain = f'Congratulations on successfully completing {course_title}! We are pleased to confirm your achievement and provide your official certificate of completion.'
-    elif completion_date != 'recently':
-        intro_text_plain = f'Congratulations on your achievement! We are pleased to confirm your successful completion on {completion_date} and provide your official certificate.'
+
+    # Backwards compatibility
+    if not str(row_dict.get('EventName', '')).strip() and str(row_dict.get('CourseTitle', '')).strip():
+        row_dict['EventName'] = row_dict['CourseTitle'].strip()
+    if not str(row_dict.get('EventDate', '')).strip() and str(row_dict.get('CompletionDate', '')).strip():
+        row_dict['EventDate'] = row_dict['CompletionDate'].strip()
+
+    event_name = str(row_dict.get('EventName', '')).strip()
+    event_date = str(row_dict.get('EventDate', '')).strip()
+    event_location = str(row_dict.get('EventLocation', '')).strip()
+    org_name = row_dict.get('OrgName', 'our organization')
+
+    if event_name and event_date:
+        thank_you_plain = (
+            f"Thank you for attending {event_name} on {event_date}. "
+            f"Your presence helped make the experience memorable for our community at {org_name}."
+        )
+    elif event_name:
+        thank_you_plain = (
+            f"Thank you for attending {event_name}. We truly appreciated having you with us."
+        )
     else:
-        intro_text_plain = 'Congratulations on your achievement! We are pleased to provide your official certificate of completion.'
-    
-    # Verification text
-    verification_text = ""
-    if row_dict.get('VerificationURL', '').strip():
-        verification_text = f"Verify at: {row_dict['VerificationURL']}"
-    
-    # Footer contact
+        thank_you_plain = (
+            "Thank you for attending our recent gathering. We truly appreciated having you with us."
+        )
+
+    attachment_line_plain = (
+        "Your certificate of appreciation is attached to this email as a PNG image. "
+        "Feel free to download, print, or share it as you wish."
+    )
+
+    detail_lines: List[str] = []
+    if event_name:
+        detail_lines.append(f"Event: {event_name}")
+    if event_date:
+        detail_lines.append(f"Date: {event_date}")
+    if event_location:
+        detail_lines.append(f"Location: {event_location}")
+
+    if detail_lines:
+        event_details_block = "EVENT DETAILS\n" + "\n".join(detail_lines) + "\n\n"
+    else:
+        event_details_block = ""
+
+    resources_url = str(row_dict.get('ResourcesURL', '')).strip()
+    resources_desc = str(row_dict.get('ResourcesDescription', '')).strip()
+    if resources_url:
+        resources_label = resources_desc or 'Access post-event resources'
+        resources_block = f"RESOURCES\n{resources_label}: {resources_url}\n\n"
+    else:
+        resources_block = ""
+
+    feedback_url = str(row_dict.get('FeedbackURL', '')).strip()
+    if feedback_url:
+        feedback_block = f"FEEDBACK\nShare your thoughts: {feedback_url}\n\n"
+    else:
+        feedback_block = ""
+
     footer_parts = []
-    if row_dict.get('OrgAddress', '').strip():
-        footer_parts.append(row_dict['OrgAddress'])
-    if row_dict.get('SupportEmail', '').strip():
-        footer_parts.append(row_dict['SupportEmail'])
-    if row_dict.get('OrgPhone', '').strip():
-        footer_parts.append(row_dict['OrgPhone'])
-    footer_contact = ' | '.join(footer_parts) if footer_parts else 'Contact us for more information'
-    
-    text = text.replace('{CertificateIntroTextPlain}', intro_text_plain)
-    text = text.replace('{VerificationText}', verification_text)
+    if str(row_dict.get('OrgAddress', '')).strip():
+        footer_parts.append(row_dict['OrgAddress'].strip())
+    if str(row_dict.get('SupportEmail', '')).strip():
+        footer_parts.append(row_dict['SupportEmail'].strip())
+    if str(row_dict.get('OrgPhone', '')).strip():
+        footer_parts.append(row_dict['OrgPhone'].strip())
+    footer_contact = ' | '.join(footer_parts) if footer_parts else 'Stay connected with us'
+
+    text = text.replace('{ThankYouMessagePlain}', thank_you_plain)
+    text = text.replace('{AttachmentLinePlain}', attachment_line_plain)
+    text = text.replace('{EventDetailsBlock}', event_details_block)
+    text = text.replace('{ResourcesBlock}', resources_block)
+    text = text.replace('{FeedbackBlock}', feedback_block)
     text = text.replace('{FooterContactText}', footer_contact)
-    
-    # Replace all placeholders
+
     for key, value in row_dict.items():
         text = text.replace(f'{{{key}}}', str(value))
-    
+
     return text
 
 def render_event_html(row_dict: Dict[str, str]) -> str:
@@ -989,10 +1049,13 @@ def render_subject(row_dict: Dict[str, str], template_key: str, custom_subject: 
         subject = custom_subject
     else:
         subject = TEMPLATE_CONFIGS[template_key]['subject_default']
-        
-        # For certificate template, add CourseTitle to subject if available
-        if template_key == 'certificate' and row_dict.get('CourseTitle', '').strip():
-            subject = f"Certificate of Completion — {row_dict['CourseTitle']}"
+
+        if template_key == 'certificate':
+            event_name = str(row_dict.get('EventName', '')).strip()
+            if not event_name:
+                event_name = str(row_dict.get('CourseTitle', '')).strip()
+            if event_name:
+                subject = f"Thank You for Attending {event_name}"
     
     # Replace placeholders
     for key, value in row_dict.items():
